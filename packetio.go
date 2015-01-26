@@ -25,6 +25,14 @@ type Unmarshaller interface {
 	Unmarshal(data []byte) error
 }
 
+// TooLarge is returned when the packet is too large to be written by WritePacket.
+var TooLarge error = errors.New("WritePacket: too large packet")
+
+// NoUnmarshaller is returned when the packet was of a type with no Unmarshaller
+// given. The unknown packet has been read from the stream and ReadPacket can
+// be called for the following packets.
+var NoUnmarshaller error = errors.New("No unmarshaller for type")
+
 const packetWriterExtra = 8
 
 // PacketWriter writes packets that are Marshallers into a io.Writer.
@@ -52,7 +60,7 @@ func (pw *PacketWriter) WritePacket(packetType byte, msg Marshaller) (int, error
 	}
 
 	if n > 0xFFffFF {
-		return 0, errors.New("WritePacket: too large packet")
+		return 0, TooLarge
 	}
 
 	binary.BigEndian.PutUint32(pw.tmp[4:], uint32(n))
@@ -101,7 +109,7 @@ func (pr *PacketReader) ReadPacket() (Unmarshaller, error) {
 		return nil, e
 	}
 	if st > len(pr.umarr) || pr.umarr[st] == nil {
-		return nil, errors.New("No unmarshaller for type")
+		return nil, NoUnmarshaller
 	}
 	res := pr.umarr[st]
 	e = res.Unmarshal(pr.tmp)
