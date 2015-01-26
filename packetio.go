@@ -14,20 +14,20 @@ import (
 	"io"
 )
 
-// Marshaler is an interface for encoding objects that is compatible with gogoprotobuf.
-type Marshaler interface {
+// Marshaller is an interface for encoding objects that is compatible with gogoprotobuf.
+type Marshaller interface {
 	Size() int
 	MarshalTo([]byte) (int, error)
 }
 
-// Unmarshaler is an interface for decoding objects that is compatible with gogoprotobuf.
-type Unmarshaler interface {
+// Unmarshaller is an interface for decoding objects that is compatible with gogoprotobuf.
+type Unmarshaller interface {
 	Unmarshal(data []byte) error
 }
 
 const packetWriterExtra = 8
 
-// PacketWriter writes packets that are Marshalers into a io.Writer.
+// PacketWriter writes packets that are Marshallers into a io.Writer.
 type PacketWriter struct {
 	w   io.Writer
 	tmp []byte
@@ -40,7 +40,7 @@ func (pw *PacketWriter) Init(w io.Writer) {
 
 // WritePacket writes the Marshaller to the destination with a length prefix and
 // a single byte type field.
-func (pw *PacketWriter) WritePacket(packetType byte, msg Marshaler) (int, error) {
+func (pw *PacketWriter) WritePacket(packetType byte, msg Marshaller) (int, error) {
 	siz := msg.Size()
 	if siz+packetWriterExtra > len(pw.tmp) {
 		freeiobuffer(pw.tmp)
@@ -66,24 +66,24 @@ func (pw *PacketWriter) WritePacket(packetType byte, msg Marshaler) (int, error)
 // PacketReader is for decoding values encoded with PacketWriter from an io.Reader.
 type PacketReader struct {
 	br    *bufio.Reader
-	umarr []Unmarshaler
+	umarr []Unmarshaller
 	tmp   []byte
 	b0    [4]byte
 }
 
 // Init initializes the PacketReader with the source io.Reader and a slice
-// of Unmarshaler values, with each index used to decode values of that
+// of Unmarshaller values, with each index used to decode values of that
 // packetType. Nil-values are permitted, and if the type is out of range
 // or the corresponding Unmarshaller is nil an error is returned.
-func (pr *PacketReader) Init(rd io.Reader, uvs []Unmarshaler) {
+func (pr *PacketReader) Init(rd io.Reader, uvs []Unmarshaller) {
 	pr.br = bufio.NewReader(rd)
 	pr.umarr = uvs
 }
 
 // ReadPacket reads a packet from the stream using the unmarshallers
-// passed to Init. Note that the Unmarshaler itself is used for decoding
+// passed to Init. Note that the Unmarshaller itself is used for decoding
 // and returned rather than making a copy.
-func (pr *PacketReader) ReadPacket() (Unmarshaler, error) {
+func (pr *PacketReader) ReadPacket() (Unmarshaller, error) {
 	buf := pr.b0[:]
 	_, e := io.ReadFull(pr.br, buf)
 	if e != nil {

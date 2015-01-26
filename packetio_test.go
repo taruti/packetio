@@ -63,7 +63,7 @@ func testWritePacket(n int, t testing.TB) {
 	}
 }
 
-func single(ty byte, m Marshaler) string {
+func single(ty byte, m Marshaller) string {
 	b := new(bytes.Buffer)
 	var wp PacketWriter
 	wp.Init(b)
@@ -99,7 +99,7 @@ func BenchmarkReadPacket(b *testing.B) {
 func testReadPacket(n int, t testing.TB) {
 	sr := &simpleReader{single(1, theA), 0}
 	var wr PacketReader
-	wr.Init(sr, []Unmarshaler{nil, &A{}, &Fixed{}})
+	wr.Init(sr, []Unmarshaller{nil, &A{}, &Fixed{}})
 	for i := 0; i < n; i++ {
 		_, e := wr.ReadPacket()
 		if e != nil {
@@ -120,7 +120,7 @@ func BenchmarkReadPacketFixed(b *testing.B) {
 func testReadPacketFixed(n int, t testing.TB) {
 	sr := &simpleReader{single(2, theFixed), 0}
 	var wr PacketReader
-	wr.Init(sr, []Unmarshaler{nil, &A{}, &Fixed{}})
+	wr.Init(sr, []Unmarshaller{nil, &A{}, &Fixed{}})
 	for i := 0; i < n; i++ {
 		_, e := wr.ReadPacket()
 		if e != nil {
