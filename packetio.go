@@ -104,8 +104,8 @@ func (pr *PacketReader) ReadPacket() (Unmarshaler, error) {
 		return nil, e
 	}
 	res := pr.umarr[st]
-	res.Unmarshal(pr.tmp)
-	return res, nil
+	e = res.Unmarshal(pr.tmp)
+	return res, e
 }
 
 func freeiobuffer([]byte) {}
