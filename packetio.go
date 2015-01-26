@@ -92,9 +92,6 @@ func (pr *PacketReader) ReadPacket() (Unmarshaller, error) {
 	st := int(buf[0])
 	buf[0] = 0
 	next := int(binary.BigEndian.Uint32(buf))
-	if st > len(pr.umarr) || pr.umarr[st] == nil {
-		return nil, errors.New("No unmarshaller for type")
-	}
 	if next > len(pr.tmp) {
 		freeiobuffer(pr.tmp)
 		pr.tmp = newiobuffer(next)
@@ -102,6 +99,9 @@ func (pr *PacketReader) ReadPacket() (Unmarshaller, error) {
 	_, e = io.ReadFull(pr.br, pr.tmp[:next])
 	if e != nil {
 		return nil, e
+	}
+	if st > len(pr.umarr) || pr.umarr[st] == nil {
+		return nil, errors.New("No unmarshaller for type")
 	}
 	res := pr.umarr[st]
 	e = res.Unmarshal(pr.tmp)
