@@ -112,7 +112,7 @@ func (pr *PacketReader) ReadPacket() (Unmarshaller, error) {
 		return nil, ErrNoUnmarshaller
 	}
 	res := pr.umarr[st]
-	e = res.Unmarshal(pr.tmp)
+	e = res.Unmarshal(pr.tmp[:next])
 	return res, e
 }
 
